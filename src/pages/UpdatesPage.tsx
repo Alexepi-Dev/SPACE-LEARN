@@ -27,7 +27,7 @@ export function UpdatesPage({
   activeAnnouncements: Announcement[]
   siteStatusError: boolean
 }) {
-  const { language, t } = useLanguage()
+  const { t } = useLanguage()
   const [history, setHistory] = useState<Announcement[] | null>(null)
   const [loadError, setLoadError] = useState(false)
 
