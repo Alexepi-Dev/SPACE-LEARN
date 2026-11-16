@@ -195,6 +195,7 @@ export function createSiteAnnouncementsStore(databaseUrl?: string): SiteAnnounce
   return {
     isConfigured,
     async getPublicAnnouncements() {
+      if (!databaseUrl) return []
       const result = await getPool().query<AnnouncementRow>(
         `SELECT id::text, type, status, title_fr, title_en, description_fr, description_en,
                 published_at, start_at, end_at, critical, areas, created_at, updated_at
@@ -207,6 +208,7 @@ export function createSiteAnnouncementsStore(databaseUrl?: string): SiteAnnounce
       return result.rows.map((row) => mapAnnouncement(row))
     },
     async getAnnouncementHistory() {
+      if (!databaseUrl) return []
       const result = await getPool().query<AnnouncementRow>(
         `SELECT id::text, type, status, title_fr, title_en, description_fr, description_en,
                 published_at, start_at, end_at, critical, areas, created_at, updated_at
@@ -309,6 +311,18 @@ export function createSiteAnnouncementsStore(databaseUrl?: string): SiteAnnounce
       return getAnnouncement(id)
     },
     async getMaintenance() {
+      if (!databaseUrl) {
+        return {
+          enabled: false,
+          titleFr: '',
+          titleEn: '',
+          messageFr: '',
+          messageEn: '',
+          estimatedEndAt: null,
+          contactEmail: null,
+          updatedAt: new Date().toISOString(),
+        }
+      }
       const result = await getPool().query<MaintenanceRow>(
         `SELECT enabled, title_fr, title_en, message_fr, message_en,
                 estimated_end_at, contact_email, updated_at

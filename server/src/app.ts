@@ -34,10 +34,19 @@ export function createApp(
   app.disable('x-powered-by')
   app.set('trust proxy', 1)
 
+  app.use((req, _res, next) => {
+    if (req.url.startsWith('/.netlify/functions/api')) {
+      req.url = req.url.replace('/.netlify/functions/api', '/api')
+    } else if (!req.url.startsWith('/api')) {
+      req.url = '/api' + req.url
+    }
+    next()
+  })
+
   app.use(helmet())
   app.use(cors({
     origin(origin, callback) {
-      if (!origin || config.allowedOrigins.includes(origin)) {
+      if (!origin || config.allowedOrigins.includes('*') || config.allowedOrigins.includes(origin)) {
         callback(null, true)
         return
       }
@@ -53,6 +62,7 @@ export function createApp(
     limit: 60,
     standardHeaders: true,
     legacyHeaders: false,
+    validate: { ip: false },
     handler: (_request, response) => {
       response.status(429).json({
         error: {

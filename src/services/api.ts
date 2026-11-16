@@ -25,7 +25,7 @@ export class ApiRequestError extends Error {
 
 function getApiUrl(path: string): URL {
   const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim()
-  const baseUrlValue = configuredBaseUrl || (import.meta.env.DEV ? window.location.origin : undefined)
+  const baseUrlValue = configuredBaseUrl || (typeof window !== 'undefined' ? window.location.origin : undefined)
   if (!baseUrlValue) {
     throw new ApiRequestError('API_NOT_CONFIGURED', 'The API server URL is not configured.')
   }
