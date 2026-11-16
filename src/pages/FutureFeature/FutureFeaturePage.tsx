@@ -1,7 +1,7 @@
 import { ArrowRight, Atom, Compass, Rocket, Telescope } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
-import { PageHeading } from '../components/PageHeading'
-import { useLanguage } from '../i18n/LanguageProvider'
+import { PageHeading } from '../../components/PageHeading'
+import { useLanguage } from '../../i18n/LanguageProvider'
 
 export function FutureFeaturePage() {
   const { t } = useLanguage()

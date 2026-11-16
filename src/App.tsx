@@ -11,18 +11,18 @@ import { HomePage } from './pages/Home/HomePage'
 import { LessonPage } from './pages/Lesson/LessonPage'
 import { ProgressPage } from './pages/Progress/ProgressPage'
 import { ApodPage } from './pages/Apod/ApodPage'
-import { CookiePolicyPage } from './pages/CookiePolicyPage'
-import { QuizPage } from './pages/QuizPage'
-import { AdminPage } from './pages/AdminPage'
-import { ExplorerPage } from './pages/ExplorerPage'
+import { CookiePolicyPage } from './pages/CookiePolicy/CookiePolicyPage'
+import { QuizPage } from './pages/Quiz/QuizPage'
+import { AdminPage } from './pages/Admin/AdminPage'
+import { ExplorerPage } from './pages/Explorer/ExplorerPage'
 import { useLanguage } from './i18n/LanguageProvider'
 import { AnnouncementBanner, announcementsForPath } from './components/AnnouncementBanner'
 import { getPublicAnnouncements, type Announcement, type MaintenanceSettings } from './services/announcementsApi'
-import { MaintenancePage } from './pages/MaintenancePage'
-import { UpdatesPage } from './pages/UpdatesPage'
+import { MaintenancePage } from './pages/Maintenance/MaintenancePage'
+import { UpdatesPage } from './pages/Updates/UpdatesPage'
 
-const SolarSystemExplorerPage = lazy(() => import('./pages/SolarSystemExplorerPage')
-  .then((module) => ({ default: module.SolarSystemExplorerPage })))
+const SolarSystemExplorerPage = lazy(() => import('./pages/SolarSystemExplorer/SolarSystemExplorerPage')
+  .then((module) => ({ default: module.SolarSystemExplorerPage })));
 
 export default function App() {
   return (

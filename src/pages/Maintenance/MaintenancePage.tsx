@@ -1,5 +1,5 @@
-import type { MaintenanceSettings } from '../services/announcementsApi'
-import { useLanguage } from '../i18n/LanguageProvider'
+import type { MaintenanceSettings } from '../../services/announcementsApi'
+import { useLanguage } from '../../i18n/LanguageProvider'
 
 export function MaintenancePage({ maintenance }: { maintenance: MaintenanceSettings }) {
   const { language, t } = useLanguage()

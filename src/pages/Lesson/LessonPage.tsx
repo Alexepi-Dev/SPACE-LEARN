@@ -1,11 +1,11 @@
 import { ArrowLeft, ArrowRight, BookOpen, Check, Clock3, ExternalLink } from 'lucide-react'
 import { Link, Navigate, useParams } from 'react-router-dom'
-import { PageHeading } from '../components/PageHeading'
-import { SolarSystemImage } from '../components/SolarSystemImage'
-import { useLanguage } from '../i18n/LanguageProvider'
-import { getLesson, lessons } from '../services/lessonCatalog'
-import { useProgressStore } from '../store/useProgressStore'
-import { LessonQuiz } from './QuizPage'
+import { PageHeading } from '../../components/PageHeading'
+import { SolarSystemImage } from '../../components/SolarSystemImage'
+import { useLanguage } from '../../i18n/LanguageProvider'
+import { getLesson, lessons } from '../../services/lessonCatalog'
+import { useProgressStore } from '../../store/useProgressStore'
+import { LessonQuiz } from '../Quiz/QuizPage'
 
 export function LessonPage() {
   const { lessonId } = useParams()

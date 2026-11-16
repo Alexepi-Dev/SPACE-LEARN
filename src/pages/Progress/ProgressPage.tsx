@@ -1,9 +1,9 @@
 import { ArrowRight, BookOpen } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { PageHeading } from '../components/PageHeading'
-import { useLanguage } from '../i18n/LanguageProvider'
-import { lessons, type LessonTopic } from '../services/lessonCatalog'
-import { useProgressStore } from '../store/useProgressStore'
+import { PageHeading } from '../../components/PageHeading'
+import { useLanguage } from '../../i18n/LanguageProvider'
+import { lessons, type LessonTopic } from '../../services/lessonCatalog'
+import { useProgressStore } from '../../store/useProgressStore'
 
 const topicOrder: LessonTopic[] = ['systemSolar', 'planets', 'stars', 'satellites', 'astronomyBasics']
 

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { CalendarClock, CircleCheck, Info, TriangleAlert, Wrench } from 'lucide-react'
-import { getAnnouncementHistory, type Announcement } from '../services/announcementsApi'
-import { useLanguage } from '../i18n/LanguageProvider'
-import type { TranslationKey } from '../i18n/translations'
+import { getAnnouncementHistory, type Announcement } from '../../services/announcementsApi'
+import { useLanguage } from '../../i18n/LanguageProvider'
+import type { TranslationKey } from '../../i18n/translations'
 
 const typeLabelKeys: Record<Announcement['type'], TranslationKey> = {
   update: 'announcementTypeUpdate',

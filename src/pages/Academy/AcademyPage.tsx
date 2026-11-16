@@ -1,8 +1,8 @@
 import { Info } from 'lucide-react'
-import { LessonCard } from '../components/LessonCard'
-import { PageHeading } from '../components/PageHeading'
-import { useLanguage } from '../i18n/LanguageProvider'
-import { lessons } from '../services/lessonCatalog'
+import { LessonCard } from '../../components/LessonCard'
+import { PageHeading } from '../../components/PageHeading'
+import { useLanguage } from '../../i18n/LanguageProvider'
+import { lessons } from '../../services/lessonCatalog'
 
 export function AcademyPage() {
   const { t } = useLanguage()

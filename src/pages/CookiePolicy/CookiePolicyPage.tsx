@@ -1,7 +1,7 @@
-import { PageHeading } from '../components/PageHeading'
-import { useCookieConsent } from '../components/CookieConsentContext'
-import { cookiePolicy } from '../i18n/cookiePolicy'
-import { useLanguage } from '../i18n/LanguageProvider'
+import { PageHeading } from '../../components/PageHeading'
+import { useCookieConsent } from '../../components/CookieConsentContext'
+import { cookiePolicy } from '../../i18n/cookiePolicy'
+import { useLanguage } from '../../i18n/LanguageProvider'
 
 export function CookiePolicyPage() {
   const { language } = useLanguage()

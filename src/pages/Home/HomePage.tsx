@@ -9,9 +9,9 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { SolarSystemImage } from '../components/SolarSystemImage'
-import { useLanguage } from '../i18n/LanguageProvider'
-import type { TranslationKey } from '../i18n/translations'
+import { SolarSystemImage } from '../../components/SolarSystemImage'
+import { useLanguage } from '../../i18n/LanguageProvider'
+import type { TranslationKey } from '../../i18n/translations'
 
 const pathways: {
   title: TranslationKey

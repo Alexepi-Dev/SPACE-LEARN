@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { ArrowRight, Check, CircleHelp, RotateCcw, X } from 'lucide-react'
 import { Link, Navigate, useParams } from 'react-router-dom'
-import { PageHeading } from '../components/PageHeading'
-import { useLanguage } from '../i18n/LanguageProvider'
-import { getLesson, lessons } from '../services/lessonCatalog'
-import { useProgressStore } from '../store/useProgressStore'
+import { PageHeading } from '../../components/PageHeading'
+import { useLanguage } from '../../i18n/LanguageProvider'
+import { getLesson, lessons } from '../../services/lessonCatalog'
+import { useProgressStore } from '../../store/useProgressStore'
 
 export function QuizPage() {
   const { lessonId } = useParams()

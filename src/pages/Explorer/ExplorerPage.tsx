@@ -1,12 +1,12 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { ArrowLeft, ArrowRight, ExternalLink, Image, RotateCw, Search, Video } from 'lucide-react'
 import { useMemo, useState, type FormEvent } from 'react'
-import { ApodMedia } from '../components/ApodMedia'
-import { ApodTranslationNotice } from '../components/ApodTranslationNotice'
-import { PageHeading } from '../components/PageHeading'
-import { useLanguage } from '../i18n/LanguageProvider'
-import { ApiRequestError } from '../services/api'
-import { getApodPage, type ApodItem } from '../services/apod.service'
+import { ApodMedia } from '../../components/ApodMedia'
+import { ApodTranslationNotice } from '../../components/ApodTranslationNotice'
+import { PageHeading } from '../../components/PageHeading'
+import { useLanguage } from '../../i18n/LanguageProvider'
+import { ApiRequestError } from '../../services/api'
+import { getApodPage, type ApodItem } from '../../services/apod.service'
 
 type MediaFilter = 'all' | 'image' | 'video'
 const ITEMS_PER_PAGE = 8

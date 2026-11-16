@@ -13,8 +13,8 @@ import {
   ShieldCheck,
   Users,
 } from 'lucide-react'
-import { ApiRequestError } from '../services/api'
-import { lessons } from '../services/lessonCatalog'
+import { ApiRequestError } from '../../services/api'
+import { lessons } from '../../services/lessonCatalog'
 import {
   getAdminAuditLog,
   getAdminOverview,
@@ -24,9 +24,9 @@ import {
   type AdminOverview,
   type AdminServices,
   type AdminSession,
-} from '../services/adminApi'
-import { useLanguage } from '../i18n/LanguageProvider'
-import { adminTranslations } from '../i18n/adminTranslations'
+} from '../../services/adminApi'
+import { useLanguage } from '../../i18n/LanguageProvider'
+import { adminTranslations } from '../../i18n/adminTranslations'
 
 type AdminMessageKey = 'configError' | 'databaseError' | 'loginError' | 'loadError' | 'sessionExpired'
 type AdminView = 'overview' | 'activity' | 'learners' | 'content' | 'services' | 'reports' | 'notifications' | 'security' | 'settings'

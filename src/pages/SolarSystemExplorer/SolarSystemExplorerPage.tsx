@@ -12,14 +12,14 @@ import {
   Telescope,
 } from 'lucide-react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { PageHeading } from '../components/PageHeading'
-import { useLanguage } from '../i18n/LanguageProvider'
-import { ApiRequestError } from '../services/api'
-import { getSolarSystemEphemeris, type SolarSystemEphemeris } from '../services/solarSystemApi'
-import { bodiesById, moons, planetSourceUrl, planets, sun, textureAttributionUrl, textureLicenseUrl } from '../features/solar-system/data'
-import { SolarSystemCanvas } from '../features/solar-system/SolarSystemCanvas'
-import type { CelestialProfile, RenderedBody, ScaleMode } from '../features/solar-system/types'
-import type { TranslationKey } from '../i18n/translations'
+import { PageHeading } from '../../components/PageHeading'
+import { useLanguage } from '../../i18n/LanguageProvider'
+import { ApiRequestError } from '../../services/api'
+import { getSolarSystemEphemeris, type SolarSystemEphemeris } from '../../services/solarSystemApi'
+import { bodiesById, moons, planetSourceUrl, planets, sun, textureAttributionUrl, textureLicenseUrl } from '../../features/solar-system/data'
+import { SolarSystemCanvas } from '../../features/solar-system/SolarSystemCanvas'
+import type { CelestialProfile, RenderedBody, ScaleMode } from '../../features/solar-system/types'
+import type { TranslationKey } from '../../i18n/translations'
 
 type ViewMode = 'system' | 'moons' | 'compare'
 
@@ -504,7 +504,7 @@ function MoonSelector({ selectedId, availableIds, loading, language, onSelect, t
 
 function BodyInformation({ profile, elements, language, epoch, onFocus, t }: {
   profile: CelestialProfile
-  elements?: import('../services/solarSystemApi').OrbitalElements
+  elements?: import('../../services/solarSystemApi').OrbitalElements
   language: 'fr' | 'en'
   epoch?: string
   onFocus: () => void
