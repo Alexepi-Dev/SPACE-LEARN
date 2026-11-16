@@ -9,6 +9,8 @@ export interface ServerConfig {
   adminEmail?: string
   adminPasswordHash?: string
   adminSessionSecret?: string
+  deeplAuthKey?: string
+  deeplApiUrl: string
 }
 
 function parseAllowedOrigins(value: string | undefined): string[] {
@@ -47,6 +49,8 @@ export function loadServerConfig(env: NodeJS.ProcessEnv = process.env): ServerCo
   const databaseUrl = env.DATABASE_URL?.trim() || undefined
   const adminEmail = env.ADMIN_EMAIL?.trim().toLowerCase() || undefined
   const adminPasswordHash = env.ADMIN_PASSWORD_HASH?.trim() || undefined
+  const deeplAuthKey = env.DEEPL_AUTH_KEY?.trim() || undefined
+  const deeplApiUrl = env.DEEPL_API_URL?.trim() || 'https://api-free.deepl.com/v2/translate'
   const administratorValues = [adminEmail, adminPasswordHash, adminSessionSecret]
   const administratorValuesProvided = administratorValues.filter(Boolean).length
 
@@ -79,6 +83,24 @@ export function loadServerConfig(env: NodeJS.ProcessEnv = process.env): ServerCo
       throw new Error('DATABASE_URL must use the PostgreSQL protocol.')
     }
   }
+  let parsedDeepLApiUrl: URL
+  try {
+    parsedDeepLApiUrl = new URL(deeplApiUrl)
+  } catch {
+    throw new Error('DEEPL_API_URL must be a valid DeepL API URL.')
+  }
+  if (
+    parsedDeepLApiUrl.protocol !== 'https:'
+    || !['api-free.deepl.com', 'api.deepl.com'].includes(parsedDeepLApiUrl.hostname)
+    || parsedDeepLApiUrl.pathname !== '/v2/translate'
+    || parsedDeepLApiUrl.username
+    || parsedDeepLApiUrl.password
+    || parsedDeepLApiUrl.port
+    || parsedDeepLApiUrl.search
+    || parsedDeepLApiUrl.hash
+  ) {
+    throw new Error('DEEPL_API_URL must use the official DeepL translate endpoint.')
+  }
 
   return {
     port,
@@ -89,5 +111,7 @@ export function loadServerConfig(env: NodeJS.ProcessEnv = process.env): ServerCo
     adminEmail,
     adminPasswordHash,
     adminSessionSecret,
+    deeplAuthKey,
+    deeplApiUrl,
   }
 }

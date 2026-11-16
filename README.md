@@ -59,6 +59,8 @@ Render backend environment:
 | Variable | Purpose |
 | --- | --- |
 | `NASA_API_KEY` | Secret for NASA endpoints that require a key; never prefix it with `VITE_` |
+| `DEEPL_AUTH_KEY` | Optional DeepL API secret for translating NASA APOD text into French; server-only, never use a `VITE_` prefix |
+| `DEEPL_API_URL` | Official DeepL translate endpoint; defaults to `https://api-free.deepl.com/v2/translate` (use `https://api.deepl.com/v2/translate` for a Pro key) |
 | `CLIENT_ORIGIN` | Comma-separated exact browser origins allowed by CORS |
 | `NODE_ENV` | Set to `production` on Render |
 | `PORT` | Supplied by Render; local development defaults to `3001` |
@@ -72,14 +74,14 @@ Never commit `.env` files. `.env.example` files contain placeholders only.
 ## Available API routes
 
 - `GET /api/health`
-- `GET /api/space/apod?page=1&per_page=8`
+- `GET /api/space/apod?page=1&per_page=8&language=fr`
 - `GET /api/space/solar-system?include_moons=false` (set `true` to request the featured moons)
 - `POST /api/admin/session` (rate-limited; environment bootstrap credentials)
 - `GET /api/admin/overview` (super-admin bearer token required)
 - `GET /api/admin/services` (super-admin bearer token required)
 - `GET /api/admin/audit-log` (super-admin bearer token required)
 
-The APOD endpoint validates pagination, times out after 10 seconds, normalizes NASA fields, strips HTML from explanatory text, caches successful pages for 30 minutes and returns pagination metadata from the WordPress response headers. The solar-system endpoint requests osculating elements from NASA/JPL Horizons in AU, degrees and days, relative to the Sun or the relevant planet. It limits upstream concurrency, times out each request, caches successful target elements for 15 minutes, and reports unavailable targets instead of substituting invented positions. No API key is required or exposed.
+The APOD endpoint validates pagination and language, times out after 10 seconds, normalizes NASA fields, strips HTML from explanatory text, caches successful pages for 30 minutes and returns pagination metadata from the WordPress response headers. When requested in French and `DEEPL_AUTH_KEY` is configured, the server translates titles, explanations and alternative text through DeepL, caches successful translations for 24 hours, and keeps the original NASA text and source link available. Without that key, it clearly reports that translation is not configured and returns the original English text. The solar-system endpoint requests osculating elements from NASA/JPL Horizons in AU, degrees and days, relative to the Sun or the relevant planet. It limits upstream concurrency, times out each request, caches successful target elements for 15 minutes, and reports unavailable targets instead of substituting invented positions. No NASA API key is required or exposed.
 
 ## Solar-system simulator data and limitations
 

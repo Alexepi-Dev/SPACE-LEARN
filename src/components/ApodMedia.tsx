@@ -2,9 +2,14 @@ import { useState } from 'react'
 import { useLanguage } from '../i18n/LanguageProvider'
 import type { ApodItem } from '../services/apod.service'
 
-export function ApodMedia({ item }: { item: ApodItem }) {
-  const { t } = useLanguage()
+export function ApodMedia({ item, preferOriginal = false }: { item: ApodItem; preferOriginal?: boolean }) {
+  const { language, t } = useLanguage()
   const [failed, setFailed] = useState(false)
+  const frenchTranslation = language === 'fr' && !preferOriginal ? item.frenchTranslation : null
+  const title = frenchTranslation?.title ?? item.title
+  const alt = frenchTranslation
+    ? frenchTranslation.alt ?? frenchTranslation.title
+    : item.alt ?? title
 
   if (!failed && item.mediaType === 'video' && item.mediaUrl) {
     return (
@@ -13,7 +18,7 @@ export function ApodMedia({ item }: { item: ApodItem }) {
         controls
         preload="metadata"
         poster={item.previewImageUrl ?? undefined}
-        aria-label={item.title}
+        aria-label={title}
         onError={() => setFailed(true)}
       >
         <source src={item.mediaUrl} />
@@ -26,7 +31,7 @@ export function ApodMedia({ item }: { item: ApodItem }) {
     return (
       <img
         src={imageUrl}
-        alt={item.alt ?? item.title}
+        alt={alt}
         className="aspect-video w-full bg-spaceNight object-contain"
         loading="lazy"
         decoding="async"

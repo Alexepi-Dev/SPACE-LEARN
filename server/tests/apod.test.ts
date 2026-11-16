@@ -4,7 +4,8 @@ import type { AddressInfo } from 'node:net'
 import { test } from 'node:test'
 import { createApp } from '../src/app.js'
 import { ApiError } from '../src/middleware/apiError.js'
-import { createApodService, normalizeApodRecord } from '../src/services/apod.service.js'
+import { createApodService, normalizeApodRecord, type ApodQuery } from '../src/services/apod.service.js'
+import { createDeepLTranslator } from '../src/services/deepl.service.js'
 import { HttpCache } from '../src/services/httpCache.js'
 
 const imageRecord = {
@@ -20,7 +21,10 @@ const imageRecord = {
   alt: 'A nebula against a dark background.',
 }
 
-async function withServer(run: (baseUrl: string) => Promise<void>, service: { getPage: () => Promise<unknown> }) {
+async function withServer(
+  run: (baseUrl: string) => Promise<void>,
+  service: { getPage: (query: ApodQuery) => Promise<unknown> },
+) {
   const app = createApp({ allowedOrigins: ['https://space-learn.example'] }, service)
   const server = app.listen(0, '127.0.0.1')
   await once(server, 'listening')
@@ -40,6 +44,46 @@ test('normalizes APOD records, strips markup, extracts video and caches pages', 
     media_type: 'video',
     hdurl: 'https://assets.science.nasa.gov/apod/poster.jpg',
     basic_html: '<video><source src="https://assets.science.nasa.gov/apod/clip.mp4" type="video/mp4"></video>',
+  })
+
+  test('translates APOD text into French while retaining the NASA original', async () => {
+    const service = createApodService(
+      async () => new Response(JSON.stringify([imageRecord]), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+      new HttpCache(60_000),
+      {
+        isConfigured: true,
+        async translate(texts) {
+          return texts.map((text) => `FR: ${text}`)
+        },
+      },
+    )
+
+    const page = await service.getPage({ page: 1, perPage: 1, language: 'fr' })
+    const item = page.items[0]
+
+    assert.equal(item.translationStatus, 'translated')
+    assert.equal(item.title, imageRecord.title)
+    assert.equal(item.frenchTranslation?.title, `FR: ${imageRecord.title}`)
+    assert.equal(item.frenchTranslation?.alt, `FR: ${imageRecord.alt}`)
+  })
+
+  test('marks French APOD text when DeepL is not configured', async () => {
+    const service = createApodService(
+      async () => new Response(JSON.stringify([imageRecord]), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+      new HttpCache(60_000),
+      createDeepLTranslator({}),
+    )
+
+    const page = await service.getPage({ page: 1, perPage: 1, language: 'fr' })
+
+    assert.equal(page.items[0].translationStatus, 'not_configured')
+    assert.equal(page.items[0].frenchTranslation, null)
   })
 
   assert.equal(video.mediaType, 'video')
@@ -86,6 +130,22 @@ test('validates APOD pagination and returns a safe upstream error with CORS rest
   await withServer(async (baseUrl) => {
     const invalid = await fetch(`${baseUrl}/api/space/apod?page=0`, {
       headers: { origin: 'https://space-learn.example' },
+    })
+
+    test('uses the Accept-Language header for APOD translations', async () => {
+      let requestedLanguage: string | undefined
+      await withServer(async (baseUrl) => {
+        const response = await fetch(`${baseUrl}/api/space/apod?page=1`, {
+          headers: { 'accept-language': 'fr-CA,fr;q=0.9' },
+        })
+        assert.equal(response.status, 200)
+        assert.equal(requestedLanguage, 'fr')
+      }, {
+        async getPage(query) {
+          requestedLanguage = query.language
+          return { items: [] }
+        },
+      })
     })
     assert.equal(invalid.status, 400)
     assert.equal(invalid.headers.get('access-control-allow-origin'), 'https://space-learn.example')

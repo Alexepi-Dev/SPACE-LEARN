@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, ExternalLink, Image, RotateCw, Video } from 'luc
 import { useState } from 'react'
 import { PageHeading } from '../components/PageHeading'
 import { ApodMedia } from '../components/ApodMedia'
+import { ApodTranslationNotice } from '../components/ApodTranslationNotice'
 import { useLanguage } from '../i18n/LanguageProvider'
 import { ApiRequestError } from '../services/api'
 import { getApodPage, type ApodItem } from '../services/apod.service'
@@ -13,8 +14,8 @@ export function ApodPage() {
   const { language, t } = useLanguage()
   const [page, setPage] = useState(1)
   const query = useQuery({
-    queryKey: ['nasa-apod', page, ITEMS_PER_PAGE],
-    queryFn: ({ signal }) => getApodPage(page, ITEMS_PER_PAGE, signal),
+    queryKey: ['nasa-apod', language, page, ITEMS_PER_PAGE],
+    queryFn: ({ signal }) => getApodPage(page, ITEMS_PER_PAGE, language, signal),
     placeholderData: keepPreviousData,
   })
 
@@ -48,6 +49,8 @@ export function ApodPage() {
           </button>
         </section>
       )}
+
+      {query.data && <ApodTranslationNotice items={query.data.items} />}
 
       {query.data && query.data.items.length === 0 && (
         <section className="rounded-3xl border border-spaceMist bg-white p-4 text-sm leading-6 text-spaceBlue/80 sm:p-6" role="status">
@@ -95,17 +98,22 @@ export function ApodPage() {
 
 function ApodCard({ item, language }: { item: ApodItem; language: 'fr' | 'en' }) {
   const { t } = useLanguage()
+  const [showOriginal, setShowOriginal] = useState(false)
   const date = new Intl.DateTimeFormat(language === 'fr' ? 'fr-FR' : 'en-GB', {
     dateStyle: 'long',
     timeZone: 'UTC',
   }).format(new Date(`${item.date}T00:00:00Z`))
   const mediaLabel = item.mediaType === 'image' ? t('apodImage') : item.mediaType === 'video' ? t('apodVideo') : t('apodOther')
   const MediaIcon = item.mediaType === 'video' ? Video : Image
+  const frenchTranslation = language === 'fr' && !showOriginal ? item.frenchTranslation : null
+  const translated = frenchTranslation !== null
+  const title = frenchTranslation?.title ?? item.title
+  const explanation = frenchTranslation?.explanation ?? item.explanation
 
   return (
     <article className="min-w-0 overflow-hidden rounded-3xl border border-white bg-white shadow-sm">
       <figure>
-        <ApodMedia item={item} />
+        <ApodMedia item={item} preferOriginal={showOriginal} />
         <figcaption className="flex flex-wrap items-center justify-between gap-2 border-b border-spaceMist px-4 py-3 sm:gap-3">
           <span className="inline-flex min-w-0 items-center gap-2 rounded-full bg-spaceMist px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-spaceBlue">
             <MediaIcon className="h-3.5 w-3.5 shrink-0 text-secondaryGreen" />
@@ -115,8 +123,18 @@ function ApodCard({ item, language }: { item: ApodItem; language: 'fr' | 'en' })
         </figcaption>
       </figure>
       <div className="p-4 sm:p-5">
-        <h2 className="break-words text-base font-bold leading-snug text-spaceNight sm:text-lg">{item.title}</h2>
-        <p className="mt-3 whitespace-pre-line break-words text-sm leading-6 text-spaceBlue/80 sm:text-base sm:leading-7">{item.explanation}</p>
+        {translated && <p className="text-[10px] font-semibold text-secondaryGreen">{t('apodMachineTranslated')}</p>}
+        <h2 className="break-words text-base font-bold leading-snug text-spaceNight sm:text-lg">{title}</h2>
+        <p className="mt-3 whitespace-pre-line break-words text-sm leading-6 text-spaceBlue/80 sm:text-base sm:leading-7">{explanation}</p>
+        {language === 'fr' && item.translationStatus === 'translated' && (
+          <button
+            type="button"
+            onClick={() => setShowOriginal((visible) => !visible)}
+            className="mt-3 text-xs font-semibold text-secondaryGreen underline underline-offset-2 hover:text-spaceNight"
+          >
+            {showOriginal ? t('apodShowTranslation') : t('apodShowOriginal')}
+          </button>
+        )}
         {item.credit && <p className="mt-3 break-words text-xs leading-5 text-spaceBlue/70">{t('apodCredit')}: {item.credit}</p>}
         <a
           href={item.sourceUrl}

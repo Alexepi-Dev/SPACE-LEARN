@@ -5,6 +5,7 @@ import type { ApodQuery } from '../services/apod.service.js'
 const querySchema = z.object({
   page: z.coerce.number().int().min(1).max(20_000).default(1),
   per_page: z.coerce.number().int().min(1).max(20).default(8),
+  language: z.enum(['en', 'fr']).optional(),
 }).strict()
 
 export function createApodController(
@@ -23,9 +24,11 @@ export function createApodController(
     }
 
     try {
+      const acceptLanguage = request.get('accept-language')?.split(',')[0]?.split('-')[0]?.toLowerCase()
       response.json(await service.getPage({
         page: query.data.page,
         perPage: query.data.per_page,
+        language: query.data.language ?? (acceptLanguage === 'fr' ? 'fr' : 'en'),
       }))
     } catch (error) {
       next(error)

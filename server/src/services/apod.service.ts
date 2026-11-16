@@ -1,6 +1,7 @@
 import sanitizeHtml from 'sanitize-html'
 import { z } from 'zod'
 import { ApiError } from '../middleware/apiError.js'
+import { createDeepLTranslator, type DeepLTranslator } from './deepl.service.js'
 import { HttpCache } from './httpCache.js'
 
 const APOD_ENDPOINT = 'https://science.nasa.gov/wp-json/wp/v2/apod-basic'
@@ -28,6 +29,13 @@ const rawApodRecordSchema = z.object({
 export interface ApodQuery {
   page: number
   perPage: number
+  language?: 'en' | 'fr'
+}
+
+export interface FrenchApodText {
+  title: string
+  explanation: string
+  alt: string | null
 }
 
 export interface ApodItem {
@@ -40,6 +48,8 @@ export interface ApodItem {
   credit: string | null
   alt: string | null
   sourceUrl: string
+  frenchTranslation: FrenchApodText | null
+  translationStatus: 'not_requested' | 'translated' | 'not_configured' | 'unavailable'
 }
 
 export interface ApodPage {
@@ -127,17 +137,23 @@ export function normalizeApodRecord(input: unknown): ApodItem {
     credit: toPlainText(record.credit ?? record.copyright ?? '') || null,
     alt: record.alt?.trim() || null,
     sourceUrl,
+    frenchTranslation: null,
+    translationStatus: 'not_requested',
   }
 }
 
 export function createApodService(
   fetcher: typeof fetch = fetch,
   cache: HttpCache<ApodPage> = new HttpCache<ApodPage>(CACHE_TTL_MS),
+  translator: DeepLTranslator = createDeepLTranslator({
+    authKey: process.env.DEEPL_AUTH_KEY,
+    apiUrl: process.env.DEEPL_API_URL,
+  }),
 ) {
   return {
-    getPage({ page, perPage }: ApodQuery): Promise<ApodPage> {
+    async getPage({ page, perPage, language = 'en' }: ApodQuery): Promise<ApodPage> {
       const cacheKey = `${page}:${perPage}`
-      return cache.get(cacheKey, async () => {
+      const apodPage = await cache.get(cacheKey, async () => {
         const url = new URL(APOD_ENDPOINT)
         url.searchParams.set('page', String(page))
         url.searchParams.set('per_page', String(perPage))
@@ -185,7 +201,63 @@ export function createApodService(
           clearTimeout(timeout)
         }
       })
+
+      if (language !== 'fr') return apodPage
+      if (!translator.isConfigured) {
+        return setTranslationStatus(apodPage, 'not_configured')
+      }
+
+      try {
+        const translationSlots = apodPage.items.flatMap((item) => [
+          { item, field: 'title' as const, text: item.title },
+          ...(item.explanation.trim() ? [{ item, field: 'explanation' as const, text: item.explanation }] : []),
+          ...(item.alt ? [{ item, field: 'alt' as const, text: item.alt }] : []),
+        ])
+        const translatedText = await translator.translate(translationSlots.map((slot) => slot.text))
+        let translatedIndex = 0
+        const translationsByDate = new Map<string, FrenchApodText>()
+
+        for (const slot of translationSlots) {
+          const itemTranslation = translationsByDate.get(slot.item.date) ?? {
+            title: slot.item.title,
+            explanation: slot.item.explanation,
+            alt: slot.item.alt,
+          }
+          const translatedValue = translatedText[translatedIndex]
+          translatedIndex += 1
+          itemTranslation[slot.field] = translatedValue
+          translationsByDate.set(slot.item.date, itemTranslation)
+        }
+
+        return {
+          ...apodPage,
+          items: apodPage.items.map((item) => ({
+            ...item,
+            frenchTranslation: translationsByDate.get(item.date) ?? {
+              title: item.title,
+              explanation: item.explanation,
+              alt: item.alt,
+            },
+            translationStatus: 'translated' as const,
+          })),
+        }
+      } catch (error) {
+        console.error('[api] APOD French translation unavailable', {
+          code: error instanceof ApiError ? error.code : 'DEEPL_UNAVAILABLE',
+        })
+        return setTranslationStatus(apodPage, 'unavailable')
+      }
     },
+  }
+}
+
+function setTranslationStatus(
+  page: ApodPage,
+  status: 'not_configured' | 'unavailable',
+): ApodPage {
+  return {
+    ...page,
+    items: page.items.map((item) => ({ ...item, translationStatus: status })),
   }
 }
 

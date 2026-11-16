@@ -11,6 +11,12 @@ const apodItemSchema = z.object({
   credit: z.string().nullable(),
   alt: z.string().nullable(),
   sourceUrl: z.string().url(),
+  frenchTranslation: z.object({
+    title: z.string(),
+    explanation: z.string(),
+    alt: z.string().nullable(),
+  }).nullable().optional().default(null),
+  translationStatus: z.enum(['not_requested', 'translated', 'not_configured', 'unavailable']).optional().default('not_requested'),
 })
 
 const apodPageSchema = z.object({
@@ -31,11 +37,14 @@ export type ApodPage = z.infer<typeof apodPageSchema>
 export async function getApodPage(
   page: number,
   perPage: number,
+  language: 'en' | 'fr',
   signal?: AbortSignal,
 ): Promise<ApodPage> {
   const search = new URLSearchParams({
     page: String(page),
     per_page: String(perPage),
   })
-  return apiGet(`/api/space/apod?${search.toString()}`, apodPageSchema, signal)
+  return apiGet(`/api/space/apod?${search.toString()}`, apodPageSchema, signal, {
+    'accept-language': language,
+  })
 }

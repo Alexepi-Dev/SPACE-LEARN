@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { ArrowLeft, ArrowRight, ExternalLink, Image, RotateCw, Search, Video } from 'lucide-react'
 import { useMemo, useState, type FormEvent } from 'react'
 import { ApodMedia } from '../components/ApodMedia'
+import { ApodTranslationNotice } from '../components/ApodTranslationNotice'
 import { PageHeading } from '../components/PageHeading'
 import { useLanguage } from '../i18n/LanguageProvider'
 import { ApiRequestError } from '../services/api'
@@ -17,14 +18,15 @@ export function ExplorerPage() {
   const [searchValue, setSearchValue] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const query = useQuery({
-    queryKey: ['nasa-apod-explorer', page, ITEMS_PER_PAGE],
-    queryFn: ({ signal }) => getApodPage(page, ITEMS_PER_PAGE, signal),
+    queryKey: ['nasa-apod-explorer', language, page, ITEMS_PER_PAGE],
+    queryFn: ({ signal }) => getApodPage(page, ITEMS_PER_PAGE, language, signal),
     placeholderData: keepPreviousData,
   })
 
   const items = useMemo(() => query.data?.items.filter((item) => {
     const matchesType = filter === 'all' || item.mediaType === filter
-    const searchableText = `${item.title} ${item.explanation} ${item.credit ?? ''}`.toLocaleLowerCase(language)
+    const displayedText = language === 'fr' ? item.frenchTranslation : null
+    const searchableText = `${displayedText?.title ?? item.title} ${displayedText?.explanation ?? item.explanation} ${item.credit ?? ''}`.toLocaleLowerCase(language)
     return matchesType && searchableText.includes(searchTerm.toLocaleLowerCase(language))
   }) ?? [], [filter, language, query.data?.items, searchTerm])
 
@@ -93,6 +95,8 @@ export function ExplorerPage() {
         </section>
       )}
 
+      {query.data && <ApodTranslationNotice items={query.data.items} />}
+
       {query.data && items.length > 0 && (
         <>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -127,6 +131,8 @@ function ExplorerCard({ item, language }: { item: ApodItem; language: 'fr' | 'en
     timeZone: 'UTC',
   }).format(new Date(`${item.date}T00:00:00Z`))
   const MediaIcon = item.mediaType === 'video' ? Video : Image
+  const title = language === 'fr' ? item.frenchTranslation?.title ?? item.title : item.title
+  const explanation = language === 'fr' ? item.frenchTranslation?.explanation ?? item.explanation : item.explanation
 
   return (
     <article className="group overflow-hidden rounded-3xl border border-white bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
@@ -141,8 +147,8 @@ function ExplorerCard({ item, language }: { item: ApodItem; language: 'fr' | 'en
           <span>{item.mediaType === 'image' ? t('apodImage') : item.mediaType === 'video' ? t('apodVideo') : t('apodOther')}</span>
           <time dateTime={item.date}>{date}</time>
         </div>
-        <h2 className="font-display mt-2 line-clamp-2 text-sm font-bold leading-5 text-spaceNight">{item.title}</h2>
-        <p className="mt-2 line-clamp-3 text-xs leading-5 text-slate-600">{item.explanation}</p>
+        <h2 className="font-display mt-2 line-clamp-2 text-sm font-bold leading-5 text-spaceNight">{title}</h2>
+        <p className="mt-2 line-clamp-3 text-xs leading-5 text-slate-600">{explanation}</p>
         {item.credit && <p className="mt-2 truncate text-[10px] text-slate-500">{t('apodCredit')}: {item.credit}</p>}
         <a href={item.sourceUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-bold text-[#118d88] hover:underline">
           {t('apodOriginal')} <ExternalLink className="h-3 w-3" />

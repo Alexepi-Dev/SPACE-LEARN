@@ -9,6 +9,8 @@ import { createSpaceRouter } from './routes/space.routes.js'
 import { createAdminRouter } from './routes/admin.routes.js'
 import { createAnnouncementsRouter, createMaintenanceGuard } from './routes/announcements.routes.js'
 import { createRequestMetrics } from './services/requestMetrics.js'
+import { createApodService } from './services/apod.service.js'
+import { createDeepLTranslator } from './services/deepl.service.js'
 import type { HorizonsService } from './services/horizons.service.js'
 import { createSiteAnnouncementsStore, type SiteAnnouncementsStore } from './services/siteAnnouncements.js'
 
@@ -21,6 +23,14 @@ export function createApp(
   const app = express()
   const requestMetrics = createRequestMetrics()
   const siteAnnouncementsStore = siteAnnouncementsStoreOverride ?? createSiteAnnouncementsStore(config.databaseUrl)
+  const apodService = apodServiceOverride ?? createApodService(
+    fetch,
+    undefined,
+    createDeepLTranslator({
+      authKey: config.deeplAuthKey,
+      apiUrl: config.deeplApiUrl,
+    }),
+  )
   app.disable('x-powered-by')
   app.set('trust proxy', 1)
 
@@ -34,7 +44,7 @@ export function createApp(
       callback(null, false)
     },
     methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Accept', 'Content-Type', 'Authorization'],
+    allowedHeaders: ['Accept', 'Accept-Language', 'Content-Type', 'Authorization'],
   }))
   app.use(express.json({ limit: '16kb' }))
   app.use('/api', requestMetrics.middleware)
@@ -60,7 +70,7 @@ export function createApp(
   app.use('/api/announcements', createAnnouncementsRouter(siteAnnouncementsStore))
   app.use('/api/admin', createAdminRouter(config, requestMetrics, fetch, siteAnnouncementsStore))
   app.use('/api', createMaintenanceGuard(siteAnnouncementsStore))
-  app.use('/api/space', createSpaceRouter(apodServiceOverride, solarSystemServiceOverride))
+  app.use('/api/space', createSpaceRouter(apodService, solarSystemServiceOverride))
 
   app.use('/api', (_request, response) => {
     response.status(404).json({
